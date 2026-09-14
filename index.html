@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minecraft Mod Generator - Free AI Mods</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⛏️ Minecraft Mod Generator</h1>
+            <p class="subtitle">Create custom Minecraft mods for FREE with AI</p>
+        </header>
+
+        <main>
+            <section class="config-section">
+                <h2>Configure Your Mod</h2>
+                
+                <div class="form-group">
+                    <label for="minecraft-version">Minecraft Version:</label>
+                    <select id="minecraft-version">
+                        <option value="">-- Select Version --</option>
+                        <option value="1.20.x">1.20.x (Latest)</option>
+                        <option value="1.19.x">1.19.x</option>
+                        <option value="1.18.x">1.18.x</option>
+                        <option value="1.17.x">1.17.x</option>
+                        <option value="1.16.x">1.16.x</option>
+                        <option value="1.12.x">1.12.x</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="edition">Edition:</label>
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="edition" value="java" checked>
+                            Java Edition
+                        </label>
+                        <label>
+                            <input type="radio" name="edition" value="bedrock">
+                            Bedrock Edition
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="mod-description">Mod Description:</label>
+                    <textarea id="mod-description" placeholder="Describe what you want your mod to do..." rows="4"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="mod-name">Mod Name:</label>
+                    <input type="text" id="mod-name" placeholder="Enter your mod name...">
+                </div>
+
+                <button id="generate-btn" class="btn-primary">Generate Mod with AI</button>
+            </section>
+
+            <section id="results-section" class="results-section" style="display: none;">
+                <h2>Your Generated Mod</h2>
+                <div id="loading" class="loading" style="display: none;">
+                    <p>🤖 AI is generating your mod...</p>
+                </div>
+                <div id="result-content"></div>
+                <button id="download-btn" class="btn-secondary" style="display: none;">Download Mod</button>
+                <button id="reset-btn" class="btn-secondary">Create Another Mod</button>
+            </section>
+        </main>
+
+        <footer>
+            <p>Made with ❤️ | Free AI-Powered Mod Generator for Minecraft</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
