@@ -10,14 +10,34 @@ const resultsSection = document.getElementById('results-section');
 const resultContent = document.getElementById('result-content');
 const loadingDiv = document.getElementById('loading');
 
-// API configuration
-const API_URL = 'http://localhost:5000/api/generate-mod';
+// API configuration - Dynamic URL detection for mobile and desktop
+let API_URL;
+
+function getAPIUrl() {
+    // Check if running on localhost (desktop development)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:5000/api/generate-mod';
+    }
+    
+    // For production, use your deployed backend URL
+    // Replace with your Vercel, Railway, or other deployment URL
+    const deployedBackend = window.location.origin.replace('minecraft-mod-generator', 'minecraft-mod-generator-api');
+    return `${deployedBackend}/api/generate-mod`;
+}
+
+API_URL = getAPIUrl();
+
 let currentModData = null;
 
 // Event listeners
 generateBtn.addEventListener('click', generateMod);
 resetBtn.addEventListener('click', resetForm);
 downloadBtn.addEventListener('click', downloadMod);
+
+// Improve touch responsiveness
+if ('ontouchstart' in window) {
+    document.body.classList.add('touch-enabled');
+}
 
 // Get selected edition
 function getSelectedEdition() {
@@ -35,14 +55,17 @@ async function generateMod() {
     // Validation
     if (!version) {
         alert('Please select a Minecraft version');
+        minecraftVersionSelect.focus();
         return;
     }
     if (!description) {
         alert('Please describe what you want your mod to do');
+        modDescriptionInput.focus();
         return;
     }
     if (!modName) {
         alert('Please enter a mod name');
+        modNameInput.focus();
         return;
     }
 
@@ -52,6 +75,11 @@ async function generateMod() {
     resultContent.innerHTML = '';
     downloadBtn.style.display = 'none';
     generateBtn.disabled = true;
+
+    // Scroll to results on mobile
+    if (window.innerWidth <= 600) {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     try {
         // Call backend API
@@ -81,12 +109,15 @@ async function generateMod() {
         downloadBtn.style.display = 'inline-block';
     } catch (error) {
         loadingDiv.style.display = 'none';
+        let errorMessage = error.message;
+        
         if (error.message.includes('Failed to fetch')) {
-            resultContent.innerHTML = `<p style="color: #e74c3c;">❌ Error: Backend server is not running. Please run 'npm start' in terminal.</p>`;
-        } else {
-            resultContent.innerHTML = `<p style="color: #e74c3c;">❌ Error: ${error.message}</p>`;
+            errorMessage = 'Backend server is not running. Please ensure the API is deployed and accessible.';
         }
+        
+        resultContent.innerHTML = `<p style="color: #e74c3c;">❌ Error: ${errorMessage}</p>`;
         console.error('Error:', error);
+        console.error('API URL being used:', API_URL);
     } finally {
         generateBtn.disabled = false;
     }
@@ -109,7 +140,7 @@ function displayModResults(modData) {
         <ul>${featuresHtml}</ul>
         
         <h4>Generated Code Sample:</h4>
-        <pre style="background: #000; padding: 15px; border-radius: 5px; overflow-x: auto; max-height: 300px;"><code>${escapeHtml(modData.code)}</code></pre>
+        <pre style="background: #000; padding: 15px; border-radius: 5px; overflow-x: auto; max-height: 300px; font-size: 0.9em;"><code>${escapeHtml(modData.code)}</code></pre>
         
         <h4>Installation & Recipes:</h4>
         <p>${escapeHtml(modData.recipes)}</p>
@@ -165,10 +196,15 @@ function resetForm() {
     downloadBtn.style.display = 'none';
     document.querySelector('input[name="edition"][value="java"]').checked = true;
     currentModData = null;
+    
+    // Scroll back to top on mobile
+    if (window.innerWidth <= 600) {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 }
 
 // Initialize
 window.addEventListener('load', () => {
     console.log('🎮 Minecraft Mod Generator loaded successfully!');
-    console.log('Make sure backend server is running on http://localhost:5000');
+    console.log('API URL:', API_URL);
 });
