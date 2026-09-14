@@ -10,8 +10,12 @@ const resultsSection = document.getElementById('results-section');
 const resultContent = document.getElementById('result-content');
 const loadingDiv = document.getElementById('loading');
 
+// API configuration
+const API_URL = 'http://localhost:5000/api/generate-mod';
+let currentModData = null;
+
 // Event listeners
-generatBtn.addEventListener('click', generateMod);
+generateBtn.addEventListener('click', generateMod);
 resetBtn.addEventListener('click', resetForm);
 downloadBtn.addEventListener('click', downloadMod);
 
@@ -47,16 +51,29 @@ async function generateMod() {
     loadingDiv.style.display = 'block';
     resultContent.innerHTML = '';
     downloadBtn.style.display = 'none';
+    generateBtn.disabled = true;
 
     try {
-        // Simulate API call to AI service
-        // In a real implementation, this would call your backend/AI API
-        const modData = await callAIModGenerator({
-            version,
-            edition,
-            description,
-            modName
+        // Call backend API
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                version,
+                edition,
+                description,
+                modName
+            })
         });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const modData = await response.json();
+        currentModData = modData;
 
         // Hide loading and display results
         loadingDiv.style.display = 'none';
@@ -64,132 +81,78 @@ async function generateMod() {
         downloadBtn.style.display = 'inline-block';
     } catch (error) {
         loadingDiv.style.display = 'none';
-        resultContent.innerHTML = `<p style="color: #e74c3c;">Error: ${error.message}</p>`;
-    }
-}
-
-// Simulated AI mod generation (replace with real API call)
-async function callAIModGenerator(modConfig) {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    // Generate mock mod data
-    const modTemplates = {
-        'custom_tools': `
-            A custom tools mod that adds:
-            - ${modConfig.edition === 'java' ? 'Diamond and Netherite' : 'Copper and Amethyst'} tools
-            - Enhanced durability and efficiency
-            - Special abilities for each tool type
-            - Custom crafting recipes
-        `,
-        'biome_expansion': `
-            A biome expansion mod featuring:
-            - 5 new unique biomes with custom terrain
-            - New mobs and animals
-            - Exclusive resources and ores
-            - New vegetation and structures
-        `,
-        'magic_system': `
-            An enchantment and magic mod with:
-            - New spell casting mechanics
-            - Mystical items and artifacts
-            - Custom mana/energy system
-            - Advanced enchanting recipes
-        `,
-        'dimension_addon': `
-            A new dimension expansion with:
-            - Custom dimension with unique terrain
-            - Special blocks and materials
-            - Challenging bosses and mobs
-            - Rare loot and treasures
-        `
-    };
-
-    const modTypes = Object.keys(modTemplates);
-    const randomType = modTypes[Math.floor(Math.random() * modTypes.length)];
-
-    return {
-        name: modConfig.modName,
-        version: modConfig.version,
-        edition: modConfig.edition,
-        description: modConfig.description,
-        features: modTemplates[randomType],
-        generatedCode: generateSampleCode(modConfig),
-        downloadUrl: `#download-${Math.random().toString(36).substr(2, 9)}`
-    };
-}
-
-// Generate sample mod code
-function generateSampleCode(config) {
-    if (config.edition === 'java') {
-        return `public class ${config.modName.replace(/\s+/g, '')}Mod {
-    
-    @Mod.EventBusSubscriber(modid = MOD_ID, bus = Mod.EventBusSubscriber.Bus.MOD)
-    public static class CommonEvents {
-        @SubscribeEvent
-        public static void onServerStarting(FMLServerStartingEvent event) {
-            // Initialize mod content
+        if (error.message.includes('Failed to fetch')) {
+            resultContent.innerHTML = `<p style="color: #e74c3c;">❌ Error: Backend server is not running. Please run 'npm start' in terminal.</p>`;
+        } else {
+            resultContent.innerHTML = `<p style="color: #e74c3c;">❌ Error: ${error.message}</p>`;
         }
-    }
-    
-    // Custom item registration
-    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, MOD_ID);
-    
-    // Custom block registration
-    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, MOD_ID);
-}`;
-    } else {
-        return `// Bedrock Edition Addon Manifest
-{
-    "format_version": 2,
-    "header": {
-        "name": "${config.modName}",
-        "description": "${config.description}",
-        "version": [1, 0, 0],
-        "min_engine_version": [1, 20, 0]
-    },
-    "modules": [
-        {
-            "type": "resources",
-            "uuid": "00000000-0000-0000-0000-000000000001",
-            "version": [1, 0, 0]
-        },
-        {
-            "type": "data",
-            "uuid": "00000000-0000-0000-0000-000000000002",
-            "version": [1, 0, 0]
-        }
-    ]
-}`;
+        console.error('Error:', error);
+    } finally {
+        generateBtn.disabled = false;
     }
 }
 
 // Display mod results
 function displayModResults(modData) {
+    const featuresHtml = Array.isArray(modData.features)
+        ? modData.features.map(f => `<li>${f}</li>`).join('')
+        : `<li>${modData.features}</li>`;
+
     const html = `
         <h3>✅ Mod Generated Successfully!</h3>
         <p><strong>Mod Name:</strong> ${modData.name}</p>
         <p><strong>Minecraft Version:</strong> ${modData.version}</p>
         <p><strong>Edition:</strong> ${modData.edition === 'java' ? 'Java Edition' : 'Bedrock Edition'}</p>
-        <p><strong>Description:</strong> ${modData.description}</p>
-        <p><strong>Features:</strong></p>
-        <p>${modData.features}</p>
-        <p><strong>Generated Code Sample:</strong></p>
-        <pre style="background: #000; padding: 15px; border-radius: 5px; overflow-x: auto;"><code>${modData.generatedCode}</code></pre>
-        <p><em>📝 Full mod files are ready for download!</em></p>
+        <p><strong>Description:</strong> ${modData.description || 'Custom mod'}</p>
+        
+        <h4>Features:</h4>
+        <ul>${featuresHtml}</ul>
+        
+        <h4>Generated Code Sample:</h4>
+        <pre style="background: #000; padding: 15px; border-radius: 5px; overflow-x: auto; max-height: 300px;"><code>${escapeHtml(modData.code)}</code></pre>
+        
+        <h4>Installation & Recipes:</h4>
+        <p>${escapeHtml(modData.recipes)}</p>
+        
+        <h4>Installation Instructions:</h4>
+        <p>${escapeHtml(modData.instructions)}</p>
+        
+        <p><em>📦 Click download to get your complete mod package!</em></p>
     `;
     resultContent.innerHTML = html;
 }
 
+// Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 // Download mod
 function downloadMod() {
-    // Create a mock zip file download
-    const modName = modNameInput.value.replace(/\s+/g, '_');
+    if (!currentModData) {
+        alert('No mod data available');
+        return;
+    }
+
+    const modName = currentModData.name.replace(/\s+/g, '_');
     const timestamp = new Date().getTime();
-    const filename = `${modName}-${timestamp}.zip`;
+    const filename = `${modName}-${timestamp}.json`;
     
-    // In a real implementation, this would trigger an actual download from your server
-    alert(`📦 Downloading: ${filename}\n\nIn a production environment, this would download your complete mod package!`);
+    // Create a JSON file with mod data
+    const modJson = JSON.stringify(currentModData, null, 2);
+    const blob = new Blob([modJson], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+
+    alert(`📦 Downloaded: ${filename}`);
 }
 
 // Reset form
@@ -201,9 +164,11 @@ function resetForm() {
     resultContent.innerHTML = '';
     downloadBtn.style.display = 'none';
     document.querySelector('input[name="edition"][value="java"]').checked = true;
+    currentModData = null;
 }
 
 // Initialize
 window.addEventListener('load', () => {
-    console.log('Minecraft Mod Generator loaded successfully!');
+    console.log('🎮 Minecraft Mod Generator loaded successfully!');
+    console.log('Make sure backend server is running on http://localhost:5000');
 });
