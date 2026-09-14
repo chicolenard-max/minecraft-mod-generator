@@ -12,6 +12,14 @@ body {
     min-height: 100vh;
 }
 
+/* Touch-enabled optimizations */
+body.touch-enabled input,
+body.touch-enabled textarea,
+body.touch-enabled select,
+body.touch-enabled button {
+    font-size: 16px; /* Prevent auto-zoom on iOS */
+}
+
 .container {
     max-width: 900px;
     margin: 0 auto;
@@ -100,6 +108,8 @@ textarea:focus {
     align-items: center;
     gap: 8px;
     margin-bottom: 0;
+    padding: 8px;
+    cursor: pointer;
 }
 
 input[type="radio"] {
@@ -111,15 +121,19 @@ input[type="radio"] {
 
 .btn-primary,
 .btn-secondary {
-    padding: 12px 30px;
+    padding: 15px 30px;
     border: none;
     border-radius: 5px;
-    font-size: 1em;
+    font-size: 1.05em;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s;
     margin-right: 10px;
     margin-top: 10px;
+    min-height: 48px; /* Touch-friendly minimum height */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-primary {
@@ -137,6 +151,11 @@ input[type="radio"] {
     transform: translateY(0);
 }
 
+.btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .btn-secondary {
     background: #3498db;
     color: white;
@@ -145,6 +164,10 @@ input[type="radio"] {
 .btn-secondary:hover {
     background: #2980b9;
     transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+    transform: translateY(0);
 }
 
 .results-section {
@@ -157,6 +180,8 @@ input[type="radio"] {
     border-radius: 5px;
     margin-bottom: 20px;
     border-left: 4px solid #2ecc71;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 #result-content h3 {
@@ -164,9 +189,29 @@ input[type="radio"] {
     margin-bottom: 10px;
 }
 
+#result-content h4 {
+    color: #00d4ff;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
 #result-content p {
     margin-bottom: 10px;
     line-height: 1.8;
+}
+
+#result-content ul {
+    margin-left: 20px;
+    margin-bottom: 10px;
+}
+
+#result-content li {
+    margin-bottom: 8px;
+}
+
+#result-content pre {
+    font-size: 0.85em;
+    line-height: 1.4;
 }
 
 .loading {
@@ -203,9 +248,19 @@ footer {
     margin-top: 40px;
 }
 
-@media (max-width: 600px) {
+/* Mobile-first responsive design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    header {
+        margin: 20px 0;
+        padding: 20px 15px;
+    }
+
     header h1 {
-        font-size: 1.8em;
+        font-size: 2em;
     }
 
     section {
@@ -215,5 +270,117 @@ footer {
     .radio-group {
         flex-direction: column;
         gap: 10px;
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 10px;
+    }
+
+    .btn-secondary {
+        width: 48%;
+        display: inline-flex;
+    }
+
+    .btn-secondary:nth-child(2n) {
+        margin-left: 2%;
+    }
+}
+
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 1.8em;
+        margin-bottom: 8px;
+    }
+
+    header .subtitle {
+        font-size: 0.95em;
+    }
+
+    section {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+
+    section h2 {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    label {
+        font-size: 0.95em;
+        margin-bottom: 6px;
+    }
+
+    select,
+    input[type="text"],
+    textarea {
+        padding: 12px;
+        font-size: 16px; /* Prevent iOS auto-zoom */
+    }
+
+    .btn-primary,
+    .btn-secondary {
+        padding: 14px 20px;
+        font-size: 1em;
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 8px;
+    }
+
+    #result-content {
+        padding: 15px;
+    }
+
+    #result-content pre {
+        padding: 12px !important;
+        font-size: 0.75em;
+        max-height: 200px;
+    }
+
+    .radio-group label {
+        padding: 10px;
+        font-size: 0.95em;
+    }
+
+    input[type="radio"] {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 10px;
+    }
+
+    header {
+        margin: 15px 0;
+        padding: 15px 10px;
+    }
+
+    header h1 {
+        font-size: 1.5em;
+    }
+
+    section {
+        padding: 12px;
+    }
+
+    section h2 {
+        font-size: 1.3em;
+    }
+
+    select,
+    input[type="text"],
+    textarea {
+        padding: 10px;
+        font-size: 16px;
     }
 }
